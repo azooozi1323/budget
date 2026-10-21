@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>جدول الميزانية الشهري</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef0f4;--card:#fff;--tx:#1c2433;--mu:#6b7488;--nav:#1b2a49;--bd:#e1e5ec;--ok:#1f9d63;--okb:#e3f5ec;--bad:#d64045;--badb:#fde8e8;--ac:#3b6fd4;--acb:#e6eefc;--wr:#b7791f;--wrb:#fdf3dc;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141c;--card:#1a2030;--tx:#e8ecf4;--mu:#97a1b6;--nav:#0c1220;--bd:#2a3247;--okb:#16352a;--badb:#3a1c1f;--acb:#1c2a4a;--wrb:#3a2f14;color-scheme:dark}}
+*{box-sizing:border-box}html,body{height:auto}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Tajawal',system-ui,sans-serif;font-size:15px}
+.app{display:flex;min-height:100vh}
+nav{width:210px;background:var(--nav);color:#fff;padding:18px 12px;position:sticky;top:0;align-self:flex-start;height:100vh}
+nav h1{font-size:16px;margin:0 8px 18px;line-height:1.5}
+nav button{display:block;width:100%;text-align:right;background:none;border:0;color:#c6d0e6;padding:11px 12px;border-radius:9px;font:inherit;cursor:pointer;margin-bottom:3px}
+nav button.on{background:#2c4172;color:#fff;font-weight:700}
+main{flex:1;padding:18px;max-width:1100px;margin:auto;width:100%}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.top h2{margin:0;font-size:20px}.sub{color:var(--mu);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.k{border-radius:14px;padding:14px;background:var(--acb)}.k.g{background:var(--okb)}.k.r{background:var(--badb)}.k.y{background:var(--wrb)}
+.k small{color:var(--mu);display:block}.k b{font-size:21px;display:block;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:14px;overflow-x:auto}
+.card h3{margin:0 0 10px;font-size:16px}
+table{width:100%;border-collapse:collapse;min-width:420px}th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--bd)}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--bd) 35%,transparent)}th{color:var(--mu);font-weight:500;font-size:13px}
+input,select,button.b{font:inherit;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:var(--card);color:var(--tx);max-width:100%}
+input.n{width:92px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button.b{background:var(--ac);color:#fff;border:0;cursor:pointer;font-weight:700}button.b.s{background:var(--acb);color:var(--ac)}button.b.d{background:var(--badb);color:var(--bad)}
+.bar{height:8px;background:var(--bd);border-radius:5px;overflow:hidden;margin-top:5px}.bar i{display:block;height:100%;background:var(--ok)}
+.over{color:var(--bad);font-weight:700}.okc{color:var(--ok)}.x{text-decoration:line-through;opacity:.5}
+.cat{padding:9px 0;border-bottom:1px solid var(--bd)}.cat:last-child{border:0}.cat div{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);padding:11px 18px;border-radius:11px;color:#fff;display:none;z-index:9;max-width:90%}
+@media(max-width:800px){.app{display:block}nav{width:100%;height:auto;position:sticky;top:0;z-index:5;display:flex;overflow-x:auto;gap:4px;padding:10px 8px}nav h1{display:none}nav button{width:auto;white-space:nowrap;margin:0}main{padding:12px}}
+</style></head><body>
+<div class="app"><nav id="nav"><h1>جدول الميزانية الشهري</h1></nav><main id="m"><p>جارٍ التحميل…</p></main></div>
+<div id="toast"></div>
+<script>
+const TABS=[['home','الرئيسية'],['inc','الرواتب والدخل'],['cats','المخصصات'],['exp','المصروفات'],['log','سجل التعديلات']];
+const SEED_C=[['البيت',1500,'مشترك'],['مقاضي البيت',1300,'ريان'],['قرض ريان',1000,'ريان'],['قرض السيارة',1500,''],['قرض التعليم',1550,'عبدالعزيز'],['مصروف النساء',1200,'مشترك'],['الأطفال',1300,'عبدالعزيز'],['الغاز',1000,'مشترك'],['الشركة',1200,'مشترك'],['الاستراحة',500,''],['مصروف الأطفال الصباحي',500,'عبدالعزيز'],['الكهرباء',780,'عبدالعزيز'],['الإنترنت',175,''],['الادخار',500,'مشترك'],['جوي',230,'']];
+const SEED_I=[['راتب المسجد','ريان',28,2385],['راتب العمل','ريان',1,4000],['الضمان الاجتماعي','ريان',1,1210],['الضمان الاجتماعي','عبدالعزيز',1,4546],['حساب المواطن','ريان',10,1296],['حساب المواطن','عبدالعزيز',10,1728]];
+let db,ME={},S={inc:[],cats:[],exp:[],log:[]},tab='home',pend=false,sync=null,cy;
+const $=s=>document.querySelector(s),esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const F=n=>Number(n||0).toLocaleString('ar-SA')+' ر.س';
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+function ck(s){let[y,m,d]=s.split('-').map(Number);m--;if(d<28)m--;return new Date(y,m,28)}
+const lab=d=>d.toLocaleDateString('ar-SA-u-ca-gregory',{month:'long',year:'numeric'});
+const rng=d=>{const e=new Date(d.getFullYear(),d.getMonth()+1,27);const f=x=>x.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'short'});return f(d)+' – '+f(e)};
+function toast(t,ok=1){const e=$('#toast');e.textContent=t;e.style.background=ok?'#1f9d63':'#d64045';e.style.display='block';clearTimeout(e.t);e.t=setTimeout(()=>e.style.display='none',3200)}
+async function logit(type,item,old,nw,reason){await db.collection('log').add({t:Date.now(),uid:ME.id,name:ME.name,type,item,old:old==null?'':String(old),nw:nw==null?'':String(nw),reason:reason||''})}
+async function save(col,id,data,type,item,old,nw,reason){try{await db.collection(col).doc(id).set(data);await logit(type,item,old,nw,reason);toast('تم الحفظ ✓')}catch(e){toast('لم يُحفظ: '+(e.message||e.code),0)}}
+async function upd(col,id,patch,type,item,old,nw,reason){try{await db.collection(col).doc(id).update(patch);await logit(type,item,old,nw,reason);toast('تم الحفظ ✓')}catch(e){toast('لم يُحفظ: '+(e.message||e.code),0)}}
+const cname=id=>(S.cats.find(c=>c.id==id)||{}).name||'—';
+function spent(cid){const l=S.exp.filter(e=>e.cat==cid&&e.st=='ok'&&ck(e.date).getTime()==cy.getTime());const d=l.filter(e=>e.kind!='total').reduce((a,e)=>a+e.amt,0),t=l.filter(e=>e.kind=='total').reduce((a,e)=>a+e.amt,0);return{v:d>0?d:t,dbl:d>0&&t>0}}
+function render(){
+ $('#nav').innerHTML='<h1>جدول الميزانية الشهري</h1>'+TABS.map(([k,v])=>`<button class="${k==tab?'on':''}" onclick="go('${k}')">${v}</button>`).join('')+'<button onclick="doOut()">خروج</button>';
+ const act=S.inc.filter(i=>i.on!==false),inc=act.reduce((a,i)=>a+i.amt,0),al=S.cats.reduce((a,c)=>a+c.alloc,0);
+ const cs=S.cats.map(c=>({c,...spent(c.id)})),sp=cs.reduce((a,x)=>a+x.v,0);
+ const head=`<div class="top"><div><h2>${TABS.find(t=>t[0]==tab)[1]}</h2><div class="sub">${esc(ME.name)} · آخر مزامنة: ${sync?sync.toLocaleTimeString('ar-SA'):'—'}</div></div>
+ <div class="row"><button class="b s" onclick="mv(-1)">›</button><b>${lab(cy)}<div class="sub">${rng(cy)}</div></b><button class="b s" onclick="mv(1)">‹</button></div></div>`;
+ let h=head;
+ if(!S.cats.length&&!S.inc.length)h+=`<div class="card"><h3>لا توجد بيانات بعد</h3><p>حمّل البيانات الأولية (الدخل والمخصصات) ثم عدّلها كما تشاء.</p><button class="b" onclick="seed()">تحميل البيانات الأولية</button></div>`;
+ if(tab=='home')h+=`<div class="grid"><div class="k g"><small>الدخل الشهري</small><b>${F(inc)}</b></div><div class="k"><small>المخصصات</small><b>${F(al)}</b></div><div class="k y"><small>المصروف الفعلي</small><b>${F(sp)}</b></div><div class="k ${inc-al<0?'r':'g'}"><small>الفائض المخطط</small><b>${F(inc-al)}</b></div></div>
+ <div class="card"><h3>الفئات في هذه الدورة</h3>${cs.map(({c,v,dbl})=>{const o=v>c.alloc;return`<div class="cat"><div><b>${esc(c.name)}</b><span>${F(v)} / ${F(c.alloc)}</span></div><div class="sub"><span>${o?`<span class="over">تجاوز ${F(v-c.alloc)}</span>`:`<span class="okc">متبقٍ ${F(c.alloc-v)}</span>`}${dbl?' · ⚠ إجمالي وتفصيل معًا (احتُسب التفصيل فقط)':''}</span></div></div><div class="bar"><i style="width:${Math.min(100,c.alloc?v/c.alloc*100:0)}%;${o?'background:var(--bad)':''}"></i></div></div>`}).join('')||'—'}</div>`;
+ if(tab=='inc')h+=`<div class="card"><table><thead><tr><th>المصدر</th><th>المستفيد</th><th>اليوم</th><th>المبلغ</th><th>فعّال</th></tr></thead><tbody>${S.inc.sort((a,b)=>a.day-b.day).map(i=>`<tr class="${i.on===false?'x':''}"><td>${esc(i.name)}</td><td>${esc(i.who)}</td><td><input class="n" type="number" value="${i.day}" onchange="setI('${i.id}','day',this.value)"></td><td><input class="n" type="number" value="${i.amt}" onchange="setI('${i.id}','amt',this.value)"></td><td><input type="checkbox" ${i.on!==false?'checked':''} onchange="setI('${i.id}','on',this.checked)"></td></tr>`).join('')}</tbody></table></div>
+ <div class="card"><h3>إضافة مصدر دخل</h3><div class="row"><input id="in" placeholder="الاسم"><select id="iw"><option>ريان<option>عبدالعزيز</select><input id="id" class="n" type="number" placeholder="اليوم"><input id="ia" class="n" type="number" placeholder="المبلغ"><button class="b" onclick="addI()">إضافة</button></div></div>`;
+ if(tab=='cats')h+=`<div class="card"><table><thead><tr><th>الفئة</th><th>المسؤول</th><th>المخصص</th></tr></thead><tbody>${S.cats.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.who||'—')}</td><td><input class="n" type="number" value="${c.alloc}" onchange="setA('${c.id}',this.value)"></td></tr>`).join('')}</tbody></table></div>
+ <div class="card"><h3>إضافة فئة</h3><div class="row"><input id="cn" placeholder="اسم الفئة"><input id="ca" class="n" type="number" placeholder="المخصص"><button class="b" onclick="addC()">إضافة</button></div></div>`;
+ if(tab=='exp'){const l=S.exp.filter(e=>ck(e.date).getTime()==cy.getTime()).sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+ h+=`<div class="card"><h3>تسجيل مصروف</h3><div class="row"><input id="xd" type="date" value="${today()}"><select id="xc">${S.cats.map(c=>`<option value="${c.id}">${esc(c.name)}`).join('')}</select><input id="xs" placeholder="البيان"><input id="xa" class="n" type="number" inputmode="decimal" placeholder="المبلغ"><label><input id="xk" type="checkbox"> إجمالي فئة</label><button class="b" onclick="addX()">حفظ</button></div></div>
+ <div class="card"><div class="row" style="margin-bottom:8px"><input id="q" placeholder="بحث…" oninput="rl()" value="${esc(window.Q||'')}"></div><table><thead><tr><th>التاريخ</th><th>الفئة</th><th>البيان</th><th>المبلغ</th><th>بواسطة</th><th></th></tr></thead><tbody>${l.filter(e=>!window.Q||(e.desc+cname(e.cat)).includes(window.Q)).map(e=>`<tr class="${e.st!='ok'?'x':''}"><td>${e.date}</td><td>${esc(cname(e.cat))}</td><td>${esc(e.desc)}${e.kind=='total'?' <span class="sub">(إجمالي)</span>':''}</td><td>${F(e.amt)}</td><td>${esc(e.by)}</td><td>${e.st=='ok'?`<button class="b d" onclick="canX('${e.id}')">إلغاء</button>`:'ملغى'}</td></tr>`).join('')||'<tr><td colspan=6>لا توجد عمليات</td></tr>'}</tbody></table></div>`}
+ if(tab=='log')h+=`<div class="card"><table><thead><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>العنصر</th><th>قديم</th><th>جديد</th></tr></thead><tbody>${[...S.log].sort((a,b)=>b.t-a.t).slice(0,150).map(l=>`<tr><td>${new Date(l.t).toLocaleString('ar-SA')}</td><td>${esc(l.name)}</td><td>${esc(l.type)}</td><td>${esc(l.item)}</td><td>${esc(l.old)}</td><td>${esc(l.nw)}</td></tr>`).join('')||'<tr><td colspan=6>—</td></tr>'}</tbody></table></div>`;
+ $('#m').innerHTML=h}
+function rl(){window.Q=$('#q').value;pend=false;const p=$('#q').selectionStart;render();const q=$('#q');q.focus();q.setSelectionRange(p,p)}
+function go(t){tab=t;render()}
+function mv(n){cy=new Date(cy.getFullYear(),cy.getMonth()+n,28);render()}
+async function seed(){try{for(const[i,c]of SEED_C.entries())await db.collection('cats').doc('c'+i).set({name:c[0],alloc:c[1],who:c[2]});for(const[i,x]of SEED_I.entries())await db.collection('inc').doc('i'+i).set({name:x[0],who:x[1],day:x[2],amt:x[3],on:true});await logit('تحميل البيانات الأولية','الدخل والمخصصات');toast('تم التحميل ✓')}catch(e){toast('فشل: '+(e.message||e.code),0)}}
+function setI(id,f,v){const i=S.inc.find(x=>x.id==id),nv=f=='on'?v:+v;upd('inc',id,{[f]:nv},f=='on'?(v?'تفعيل دخل':'إيقاف دخل'):'تعديل دخل',i.name+' ('+i.who+') '+f,i[f],nv)}
+function setA(id,v){const c=S.cats.find(x=>x.id==id);upd('cats',id,{alloc:+v},'تعديل مخصص',c.name,c.alloc,+v)}
+function addI(){const n=$('#in').value.trim(),a=+$('#ia').value,d=+$('#id').value;if(!n||!(a>0)||!(d>=1&&d<=31))return toast('أكمل الحقول',0);save('inc','i'+Date.now().toString(36),{name:n,who:$('#iw').value,day:d,amt:a,on:true},'إضافة دخل',n,'',a)}
+function addC(){const n=$('#cn').value.trim(),a=+$('#ca').value;if(!n||!(a>=0))return toast('أكمل الحقول',0);save('cats','c'+Date.now().toString(36),{name:n,alloc:a,who:''},'إضافة فئة',n,'',a)}
+async function addX(){const date=$('#xd').value,cat=$('#xc').value,desc=$('#xs').value.trim(),amt=+$('#xa').value;if(!(amt>0)||!cat||!date)return toast('أكمل الحقول',0);await save('exp','e'+Date.now().toString(36),{date,cat,desc,amt,kind:$('#xk').checked?'total':'detail',st:'ok',uid:ME.id,by:ME.name,ts:Date.now()},'تسجيل مصروف',cname(cat)+(desc?' - '+desc:''),'',amt);pend=false;render()}
+function canX(id){const e=S.exp.find(x=>x.id==id);if(confirm('إلغاء هذه العملية؟ سيبقى أثرها في السجل.'))upd('exp',id,{st:'x'},'إلغاء مصروف',cname(e.cat)+' '+e.desc,e.amt,'ملغى')}
+document.addEventListener('focusout',()=>{if(pend)setTimeout(()=>{if(!/INPUT|SELECT/.test(document.activeElement.tagName)){pend=false;render()}},50)});
+cy=ck(today());
+function loginUI(m){$('#nav').innerHTML='<h1>جدول الميزانية الشهري</h1>';$('#m').innerHTML=`<div class="card" style="max-width:380px;margin:40px auto"><h3>تسجيل الدخول</h3><p class="sub">${m||''}</p><div class="row" style="flex-direction:column;align-items:stretch"><input id="le" type="email" placeholder="البريد الإلكتروني" autocomplete="username"><input id="lp" type="password" placeholder="كلمة المرور" autocomplete="current-password"><button class="b" onclick="doLogin()">دخول</button></div></div>`}
+window.boot=function(F){
+ window.doLogin=async()=>{try{await F.signInWithEmailAndPassword(F.auth,$('#le').value.trim(),$('#lp').value)}catch(e){loginUI('تعذر الدخول: تأكد من البريد وكلمة المرور')}};
+ window.doOut=()=>F.signOut(F.auth);
+ let subs=[];loginUI('جارٍ التحقق…');
+ F.onAuthStateChanged(F.auth,u=>{subs.forEach(x=>x());subs=[];S={inc:[],cats:[],exp:[],log:[]};
+  if(!u){db=null;loginUI();return}
+  const em=u.email||'';ME={id:u.uid,name:em.startsWith('rayann')?'ريان':em.startsWith('azooozi')?'عبدالعزيز':em};
+  db={collection:k=>({onSnapshot:(n,e)=>F.onSnapshot(F.collection(F.fs,k),n,e),doc:id=>({set:d=>F.setDoc(F.doc(F.fs,k,id),d),update:p=>F.updateDoc(F.doc(F.fs,k,id),p)}),add:d=>F.addDoc(F.collection(F.fs,k),d)})};
+  for(const k of['inc','cats','exp','log'])subs.push(db.collection(k).onSnapshot(s=>{S[k]=s.docs.map(x=>({id:x.id,...x.data()}));sync=new Date();if(/INPUT|SELECT/.test(document.activeElement.tagName))pend=true;else render()},e=>toast('تعذر التحميل/الاتصال: '+(e.code||e.message),0)));
+  render()})};
+</script><script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyCEyggl2V7LkpoJyXq6AFHI_rC4U7uyiDs",authDomain:"budget-5edc4.firebaseapp.com",projectId:"budget-5edc4",storageBucket:"budget-5edc4.firebasestorage.app",messagingSenderId:"1074548946450",appId:"1:1074548946450:web:4dea1b6fd3bb69cacd4acb"});
+window.boot({auth:getAuth(app),fs:getFirestore(app),signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,doc,setDoc,updateDoc,addDoc,onSnapshot});
+</script>
+</body></html>
