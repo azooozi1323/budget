@@ -35,6 +35,12 @@ tbody tr:nth-child(even){background:#fafbfd}.x{opacity:.45;text-decoration:line-
 .bd{display:inline-block;padding:2px 12px;border-radius:99px;font-size:13px;font-weight:700;white-space:nowrap}
 .b1{background:var(--blb);color:var(--bl)}.b2{background:var(--grb);color:var(--gr)}.b3{background:var(--rdb);color:var(--rd)}.b4{background:#fdf3dc;color:#a5700f}
 .ic{background:none;border:0;cursor:pointer;font-size:15px;padding:3px}
+.fpick{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fpick select{flex:1;min-width:150px;font:inherit;font-weight:700;font-size:16px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--c);color:var(--tx)}
+.fhero{background:var(--blb);border:1px solid #d6e3fb;border-radius:18px;padding:18px;margin-top:12px}.fhero.neg{background:var(--rdb);border-color:#f8d6d6}.fhero .big{font-size:34px;font-weight:800;color:var(--bl);line-height:1.15}.fhero.neg .big{color:var(--rd)}.fhero .big small{font-size:14px;font-weight:500;color:var(--mu)}
+.fst{display:flex;gap:10px;margin-top:14px}.fst div{flex:1;background:#ffffffa8;border-radius:12px;padding:8px 12px}.fst b{display:block;font-size:18px}
+.fact{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.fact .btn{padding:13px}.btn.w{background:#fdf3dc;color:#a5700f}
+.fsec{margin-top:12px}.fsec h4{margin:0 0 6px;font-size:15px}.frow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--bd)}.frow:last-child{border-bottom:0}.fic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;font-size:16px}
+
 .dn{display:flex;flex-direction:column;align-items:center;gap:12px}.lgd{width:100%;font-size:13px}.lgd div{display:flex;align-items:center;gap:8px;padding:3px 0}.lgd i{width:10px;height:10px;border-radius:50%}.lgd span{margin-right:auto;color:var(--mu)}
 .fl{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr auto;gap:10px;align-items:end;margin-bottom:10px}.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs button{border:0;border-radius:10px;padding:10px 20px;font:inherit;font-weight:700;cursor:pointer;background:#eef1f6;color:var(--mu)}
 .tabs .a1{background:var(--bl);color:#fff}.tabs .a2{background:var(--gr);color:#fff}
@@ -260,16 +266,25 @@ const dep=tx.filter(x=>x.type=='dep'&&x.st=='ok').reduce((a,x)=>a+x.amt,0);
 const loans=tx.filter(x=>x.type=='loan'&&x.st=='ok').sort((a,b)=>(a.ts||0)-(b.ts||0)).map(l=>{const ret=tx.filter(r=>r.type=='ret'&&r.st=='ok'&&r.loan==l.id).reduce((a,r)=>a+r.amt,0);return{l,ret,rem:Math.max(0,l.amt-ret)}});
 const out=loans.reduce((a,x)=>a+x.rem,0),open=f.open||0,total=open+auto+dep;
 return{auto,dep,open,total,out,avail:total-out,loans,tx}}
+let FSEL='';
+const pickFund=v=>{FSEL=v;render()};
 function fundsT(){
-const fs=S.funds.filter(x=>!x.del).sort((a,b)=>(a.ts||0)-(b.ts||0)),cs=fs.map(f=>[f,fcalc(f)]),T=cs.reduce((a,x)=>a+x[1].total,0),O=cs.reduce((a,x)=>a+x[1].out,0);
-const head=`<div class="card" style="margin-bottom:12px"><div class="ch"><h3>🏦 الصناديق</h3><button class="btn" onclick="openFund()">＋ صندوق جديد</button></div><p class="sub" style="margin:0">كل صندوق مرتبط بالتزام (مثل الأجار أو قسط السيارة). كل سداد تسجّله لذلك الالتزام يزيد رصيد الصندوق تلقائيًا، وتقدر تودع فيه يدويًا وتسجّل السلف والإرجاع.</p>${cs.length?`<div style="display:flex;gap:6px;margin-top:12px">${fn3('مجموع الصناديق',T)}${fn3('مسلَّف حاليًا',O,O>0?'var(--rd)':'')}${fn3('المتاح',T-O,T-O<0?'var(--rd)':'var(--gr)')}</div>`:''}</div>`;
-const card=([f,c])=>{
+const fs=S.funds.filter(x=>!x.del).sort((a,b)=>(a.ts||0)-(b.ts||0)),f=fs.find(x=>x.id==FSEL);if(!f)FSEL='';
+const pick=`<div class="card"><div class="fpick"><b style="font-size:17px">🏦 الصناديق</b><select onchange="pickFund(this.value)"><option value="">${fs.length?'اختر صندوقًا…':'لا توجد صناديق بعد'}</option>${fs.map(x=>`<option value="${x.id}" ${x.id==FSEL?'selected':''}>${E(x.name)}</option>`).join('')}</select><button class="btn" onclick="openFund()">＋ جديد</button></div></div>`;
+if(!f)return pick+`<p class="sub" style="text-align:center;margin:26px 0">${fs.length?'اختر صندوقًا من القائمة لعرض تفاصيله وتسجيل الحركات.':'اضغط «＋ جديد» وأنشئ أول صندوق، مثل صندوق الأجار.'}</p>`;
+const c=fcalc(f),neg=c.avail<0;
+const link=f.cat?'🧾 مرتبط بسداد <b>'+E(fnm(f.cat))+'</b> · من '+(f.start?E(lab(cyOf(f.start))):'—'):'✍️ صندوق يدوي';
+const hero=`<div class="fhero${neg?' neg':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div><div style="font-weight:800;font-size:18px">${E(f.name)}</div><div class="sub">${link}</div></div><div style="white-space:nowrap"><button class="ic" onclick="openFund('${f.id}')">✏️</button><button class="ic" onclick="delFund('${f.id}')">🗑️</button></div></div><div class="sub" style="margin-top:16px">المتاح الآن</div><div class="big">${N(c.avail)} <small>ريال</small></div><div class="fst"><div><span class="sub">المجموع</span><b>${N(c.total)}</b></div><div><span class="sub">مسلَّف حاليًا</span><b style="color:${c.out>0?'var(--rd)':'inherit'}">${N(c.out)}</b></div></div><div class="sub" style="margin-top:10px">من السداد ${N(c.auto)} · إيداع يدوي ${N(c.dep)}${c.open?' · افتتاحي '+N(c.open):''}</div></div>`;
+const acts=`<div class="fact"><button class="btn" onclick="openFDep('${f.id}')">＋ إيداع</button><button class="btn w" onclick="openFLoan('${f.id}')">↪️ تسجيل سلفة</button></div>`;
 const open=c.loans.filter(x=>x.rem>0);
-const loansH=open.length?`<div style="margin-top:12px"><div class="sub" style="font-weight:700;color:var(--rd)">سلف لم تُرجَع (${open.length})</div>${open.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)"><div><b>${N(x.rem)}</b> ريال <span class="bd ${x.l.by=='ريان'?'b2':'b1'}">${E(x.l.by)}</span><div class="sub">${E(x.l.why||'بدون غرض')} · ${x.l.date}${x.ret>0?' · أُرجع '+N(x.ret)+' من '+N(x.l.amt):''}</div></div><button class="btn g" style="padding:6px 10px;white-space:nowrap" onclick="openFRet('${x.l.id}')">✅ تم الإرجاع</button></div>`).join('')}</div>`:'';
-const hist=[...c.tx].sort((a,b)=>(b.ts||0)-(a.ts||0)).map(x=>{const ic=x.type=='dep'?'➕ إيداع':x.type=='loan'?'↪️ سلفة':'✅ إرجاع';const lo=x.type=='ret'?S.ftx.find(y=>y.id==x.loan):null,why=x.type=='ret'?(lo?lo.why:''):x.why;
-return`<div class="${x.st!='ok'?'x':''}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)"><div>${ic} <b>${N(x.amt)}</b><div class="sub">${E(x.by||'')} · ${x.date}${why?' · '+E(why):''}${x.st!='ok'?' · ملغى':''}</div></div>${x.st=='ok'?`<button class="ic" onclick="cancelFT('${x.id}')">🗑️</button>`:''}</div>`}).join('');
-return`<div class="card" style="margin-bottom:12px"><div class="ch" style="margin-bottom:4px"><h3>🏦 ${E(f.name)}</h3></div><div class="sub">${f.cat?'🧾 مرتبط بسداد: <b>'+E(fnm(f.cat))+'</b> · يحسب من '+(f.start?E(lab(cyOf(f.start))):'—'):'✍️ صندوق يدوي (غير مرتبط بالتزام)'}</div><div style="display:flex;gap:6px;margin:12px 0 8px">${fn3('المجموع',c.total)}${fn3('مسلَّف حاليًا',c.out,c.out>0?'var(--rd)':'')}${fn3('المتاح',c.avail,c.avail<0?'var(--rd)':'var(--gr)')}</div><div class="sub">من السداد ${N(c.auto)} · إيداع يدوي ${N(c.dep)}${c.open?' · افتتاحي '+N(c.open):''}</div><div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn" onclick="openFDep('${f.id}')">＋ إيداع</button><button class="btn r" onclick="openFLoan('${f.id}')">↪️ تسجيل سلفة</button><button class="btn g" onclick="openFund('${f.id}')">✏️</button><button class="btn g" onclick="delFund('${f.id}')">🗑️</button></div>${loansH}<details style="margin-top:10px" ${FX[f.id]?'open':''} ontoggle="FX['${f.id}']=this.open"><summary class="sub" style="cursor:pointer">كل الحركات (${c.tx.length})</summary>${hist||'<p class="sub">لا توجد حركات يدوية بعد.</p>'}</details></div>`};
-return head+(cs.length?cs.map(card).join(''):'<div class="card">لا توجد صناديق بعد. اضغط «＋ صندوق جديد» وابدأ بصندوق الأجار مثلًا.</div>')}
+const loansH=open.length?`<div class="card fsec"><h4>سلف لم تُرجَع <span class="bd b3">${open.length}</span></h4>${open.map(x=>`<div class="frow"><div><div><b>${N(x.rem)}</b> ريال <span class="bd ${x.l.by=='ريان'?'b2':'b1'}">${E(x.l.by)}</span></div><div class="sub">${E(x.l.why||'بدون غرض')} · ${x.l.date}${x.ret>0?' · أُرجع '+N(x.ret)+' من '+N(x.l.amt):''}</div></div><button class="btn g" style="white-space:nowrap" onclick="openFRet('${x.l.id}')">✅ تم الإرجاع</button></div>`).join('')}</div>`:'';
+const row=x=>{const lo=x.type=='ret'?S.ftx.find(y=>y.id==x.loan):null,dead=x.st!='ok'||(x.type=='ret'&&(!lo||lo.st!='ok'));
+const ic={dep:'➕',loan:'↪️',ret:'✅'}[x.type],lb={dep:'إيداع',loan:'سلفة',ret:'إرجاع'}[x.type],bg={dep:'var(--grb)',loan:'#fdf3dc',ret:'var(--blb)'}[x.type],why=x.type=='ret'?(lo?lo.why:''):x.why;
+let st='';if(x.type=='loan'&&!dead){const r=c.loans.find(y=>y.l.id==x.id);st=r&&r.rem>0?`<span class="bd b4">باقي ${N(r.rem)}</span>`:`<span class="bd b2">أُرجعت</span>`}
+const act=x.st=='ok'?(x.type=='ret'&&dead?'':`<button class="ic" onclick="cancelFT('${x.id}')">🗑️</button>`):(ME.admin?`<button class="ic" onclick="purgeFT('${x.id}')">🗑️ نهائي</button>`:'<span class="sub">ملغى</span>');
+return`<div class="frow ${dead?'x':''}"><div style="display:flex;gap:10px;align-items:center;min-width:0"><span class="fic" style="background:${bg}">${ic}</span><div style="min-width:0"><div><b>${N(x.amt)}</b> <span class="sub">${lb}</span> ${st}</div><div class="sub">${E(x.by||'')} · ${x.date}${why?' · '+E(why):''}</div></div></div>${act}</div>`};
+const hist=[...c.tx].sort((a,b)=>String(b.date).localeCompare(String(a.date))||(b.ts||0)-(a.ts||0)).map(row).join('');
+return pick+hero+acts+loansH+`<div class="card fsec"><h4>الحركات <span class="sub">(${c.tx.length})</span></h4>${hist||'<p class="sub" style="margin:0">لا توجد حركات يدوية بعد. السدادات المرتبطة تُحسب تلقائيًا في الرصيد.</p>'}</div>`}
 function openFund(id){const f=id?S.funds.find(x=>x.id==id):{};if(id&&!f)return;M={fid:id||''};
 const cs=S.cats.filter(c=>!c.del).map(c=>[c.id,(eff(c,cy)||c).name]).sort((a,b)=>a[1].localeCompare(b[1],'ar'));
 const base=ck(today()),sel=f.start||cyKey(base);let so='',has=false;
@@ -280,13 +295,13 @@ async function saveFund(){const name=$('#fn_n').value.trim(),cat=$('#fn_c').valu
 if(!name)return toast('اكتب اسم الصندوق',0);if(!(open>=0))return toast('الرصيد الافتتاحي غير صحيح',0);
 if(S.funds.some(x=>!x.del&&x.id!=id&&x.name==name))return toast('يوجد صندوق بنفس الاسم',0);
 const f=id?S.funds.find(x=>x.id==id):null;closeM();
-if(!f){await save('funds','f'+Date.now().toString(36),{name,cat,start,open,ts:Date.now(),by:ME.name},'إضافة صندوق',name,'',cat?'مرتبط بـ '+fnm(cat):'يدوي');return}
+if(!f){const nid='f'+Date.now().toString(36);FSEL=nid;await save('funds',nid,{name,cat,start,open,ts:Date.now(),by:ME.name},'إضافة صندوق',name,'',cat?'مرتبط بـ '+fnm(cat):'يدوي');return}
 const o=[],n=[],patch={},dv=(k,v)=>k=='cat'?(v?fnm(v):'بدون ربط'):k=='start'?(v?lab(cyOf(v)):'—'):v;
 [['name','الاسم',name],['cat','الالتزام المرتبط',cat],['start','بداية الحساب',start],['open','الرصيد الافتتاحي',open]].forEach(([k,l,v])=>{if(String(f[k]??'')!=String(v)){o.push(l+': '+dv(k,f[k]??''));n.push(l+': '+dv(k,v));patch[k]=v}});
 if(!o.length)return;await upd('funds',id,patch,'تعديل صندوق',name,o.join(' | '),n.join(' | '))}
 async function delFund(id){const f=S.funds.find(x=>x.id==id);if(!f)return;const c=fcalc(f);
 if(!confirm('حذف صندوق «'+f.name+'»؟'+(c.out>0?'\n⚠️ فيه سلف لم تُرجَع بقيمة '+N(c.out)+'.':'')+'\nسيبقى أثره في سجل التعديلات.'))return;
-await upd('funds',id,{del:true},'حذف صندوق',f.name,N(c.total),'محذوف')}
+FSEL='';await upd('funds',id,{del:true},'حذف صندوق',f.name,N(c.total),'محذوف')}
 function openFDep(fid){const f=S.funds.find(x=>x.id==fid);if(!f)return;M={fid};
 $('#mb').innerHTML=`<h3>إيداع في «${E(f.name)}»</h3><label>المبلغ<input id="fd_a" type="number" inputmode="decimal" placeholder="0"></label><label>التاريخ<input id="fd_d" type="date" value="${today()}"></label><label>ملاحظة (اختياري)<input id="fd_w"></label><div class="row"><button class="btn" onclick="saveFDep()">حفظ الإيداع</button><button class="btn g" onclick="closeM()">إلغاء</button></div>`;$('#md').classList.add('on')}
 async function saveFDep(){const f=S.funds.find(x=>x.id==M.fid);if(!f)return;const amt=+$('#fd_a').value,date=$('#fd_d').value,why=$('#fd_w').value.trim();
@@ -306,6 +321,10 @@ await save('ftx','t'+Date.now().toString(36),{fund:f.id,type:'ret',loan:l.id,amt
 function cancelFT(id){const x=S.ftx.find(y=>y.id==id);if(!x)return;const f=S.funds.find(y=>y.id==x.fund),lb=x.type=='dep'?'الإيداع':x.type=='loan'?'السلفة':'الإرجاع';
 if(!confirm('إلغاء '+lb+' ('+N(x.amt)+')؟'+(x.type=='loan'?'\nسيُلغى معها ما أُرجع منها.':'')+'\nسيبقى أثره في سجل التعديلات.'))return;
 upd('ftx',id,{st:'x'},'إلغاء '+lb,f?f.name:'—',x.amt,'ملغى')}
+async function purgeFT(id){if(!ME.admin)return toast('الحذف النهائي لعبدالعزيز فقط',0);const x=S.ftx.find(y=>y.id==id);if(!x)return;if(x.st=='ok')return toast('ألغِ العملية أولًا ثم احذفها نهائيًا',0);
+const f=S.funds.find(y=>y.id==x.fund),lb=x.type=='dep'?'إيداع':x.type=='loan'?'سلفة':'إرجاع',nm=lb+' - '+(f?f.name:'صندوق'),kids=x.type=='loan'?S.ftx.filter(r=>r.type=='ret'&&r.loan==id):[];
+if(!confirm('حذف نهائي: '+nm+' ('+N(x.amt)+')؟'+(kids.length?'\nوسيُحذف معها '+kids.length+' إرجاع مرتبط بها.':'')+'\nلا يمكن التراجع، ويبقى سطر واحد في سجل التعديلات.'))return;
+closeM();try{await logit('حذف نهائي',nm,x.amt,'محذوف نهائيًا',x.date||'');for(const k of kids)await db.collection('ftx').doc(k.id).delete();await db.collection('ftx').doc(id).delete();toast('تم الحذف النهائي ✓')}catch(e){toast('لم يُحذف: '+(e.message||e.code),0)}}
 /* ===== نهاية الصناديق ===== */
 function render(){if(!ME.id)return;document.body.classList.remove('login');
 const a=SI(),cs=SC(),tin=a.filter(i=>i.on!==false).reduce((x,i)=>x+i.amt,0),tob=cs.reduce((x,c)=>x+c.alloc,0);
