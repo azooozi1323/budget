@@ -470,14 +470,14 @@ window.doOut=()=>F.signOut(F.auth);let subs=[];loginUI('جارٍ التحقق…
 F.onAuthStateChanged(F.auth,u=>{subs.forEach(x=>x());subs=[];srv={};S={inc:[],cats:[],exp:[],log:[],ecats:[],pay:[],settings:[],closed:[],funds:[],ftx:[],debts:[]};
 if(!u){db=null;ME={};loginUI();return}
 const em=u.email||'';ME={id:u.uid,admin:em=='azooozi1323@gmail.com',email:em,name:em.startsWith('rayann')?'ريان':em.startsWith('azooozi')?'عبدالعزيز':em};W=ME.name=='ريان'?'ريان':'عبدالعزيز';
-db={collection:k=>({onSnapshot:(n,e)=>F.onSnapshot(F.collection(F.fs,k),n,e),doc:id=>({set:d=>F.setDoc(F.doc(F.fs,k,id),d),update:p=>F.updateDoc(F.doc(F.fs,k,id),p),delete:()=>F.deleteDoc(F.doc(F.fs,k,id))}),add:d=>F.addDoc(F.collection(F.fs,k),d)})};
+db={batch:()=>{const b=F.writeBatch(F.fs);return{set:(r,d)=>{b.set(r.ref,d)},update:(r,p)=>{b.update(r.ref,p)},delete:r=>{b.delete(r.ref)},commit:()=>b.commit()}},collection:k=>({onSnapshot:(n,e)=>F.onSnapshot(F.collection(F.fs,k),n,e),doc:id=>({ref:F.doc(F.fs,k,id),set:d=>F.setDoc(F.doc(F.fs,k,id),d),update:p=>F.updateDoc(F.doc(F.fs,k,id),p),delete:()=>F.deleteDoc(F.doc(F.fs,k,id))}),add:d=>F.addDoc(F.collection(F.fs,k),d)})};
 for(const k of['inc','cats','exp','log','ecats','pay','settings','closed','funds','ftx','debts'])subs.push(db.collection(k).onSnapshot(s=>{S[k]=s.docs.map(x=>({id:x.id,...x.data()}));if(!(s.metadata&&s.metadata.fromCache))srv[k]=true;sync=new Date();if(k=='ecats'&&!s.docs.length&&!seeded&&!(s.metadata&&s.metadata.fromCache)){seeded=true;seedE()}if(/INPUT|SELECT/.test(document.activeElement.tagName)||$('#md.on'))pend=true;else render()},e=>toast('تعذر التحميل/الاتصال: '+(e.code||e.message),0)));
 render()})};
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import {getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+import {getFirestore,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 const app=initializeApp({apiKey:"AIzaSyCEyggl2V7LkpoJyXq6AFHI_rC4U7uyiDs",authDomain:"budget-5edc4.firebaseapp.com",projectId:"budget-5edc4",storageBucket:"budget-5edc4.firebasestorage.app",messagingSenderId:"1074548946450",appId:"1:1074548946450:web:4dea1b6fd3bb69cacd4acb"});
-window.boot({auth:getAuth(app),fs:getFirestore(app),signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot});
+window.boot({auth:getAuth(app),fs:getFirestore(app),signInWithEmailAndPassword,signOut,onAuthStateChanged,collection,doc,setDoc,updateDoc,addDoc,deleteDoc,onSnapshot,writeBatch});
 </script></body></html>
