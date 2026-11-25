@@ -184,7 +184,7 @@ if(c){const dr=dirty(cy);h+=`<p>مقفلة بتاريخ ${new Date(c.closedAt).t
 else if(canClose())h+=`<p class="sub">يحفظ نسخة ثابتة من دورة ${lab(cy)} وإن عدّلت شيئًا بعدها تستطيع تحديث الأرشيف، والنسخ السابقة تبقى محفوظة.</p><button class="btn r" onclick="openClose()">إقفال دورة ${lab(cy)}</button>`;
 else h+=`<p class="sub">الإقفال متاح للمدير (عبدالعزيز) أو لمن أعطاه الصلاحية.</p>`;
 if(ME.admin)h+=`<div class="row" style="margin-top:12px;justify-content:space-between"><span>صلاحية ريان في الإقفال: <b>${perms().rayanClose?'مسموح':'غير مسموح'}</b></span><button class="btn g" onclick="togglePerm()">${perms().rayanClose?'إيقاف الصلاحية':'السماح لريان'}</button></div>`;
-return h+'</div>'}
+return h+'</div>'+sumCard()}
 function togglePerm(){const o=perms().rayanClose===true;save('settings','perms',{rayanClose:!o},'تعديل صلاحية','إقفال الشهر لريان',o?'مسموح':'غير مسموح',!o?'مسموح':'غير مسموح')}
 function openClose(){const cs=SC(),left=cs.filter(c=>c.alloc-paid(c.id)>0);
 $('#mb').innerHTML=`<h3>${closedNow()?'تحديث أرشيف':'إقفال'} دورة ${lab(cy)}</h3><div class="sub">${rng(cy)}</div>${closedNow()?'<p class="sub">ستُحفظ كنسخة جديدة، والنسخة القديمة تبقى محفوظة في الأرشيف.</p>':''}`+(left.length?`<p>اختر ما يحدث لكل متبقٍ:</p>`+left.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--bd)"><b>${E(c.name)}</b> · متبقٍ ${N(c.alloc-paid(c.id))}<select id="d_${c.id}" onchange="document.getElementById('t_${c.id}').style.display=this.value=='cat'?'block':'none'"><option value="stay">يبقى مكانه<option value="general">ينتقل للرصيد العام<option value="cat">ينتقل لفئة أخرى</select><select id="t_${c.id}" style="display:none">${cs.filter(x=>x.id!=c.id).map(x=>`<option value="${x.id}">${E(x.name)}`).join('')}</select></div>`).join(''):'<p>لا يوجد متبقٍ في أي التزام.</p>')+`<div class="row"><button class="btn r" onclick="doClose()">${closedNow()?'تأكيد التحديث':'تأكيد الإقفال'}</button><button class="btn g" onclick="closeM()">إلغاء</button></div>`;$('#md').classList.add('on')}
@@ -671,7 +671,7 @@ return`<div onclick="event.stopPropagation()">${stmtH(c,l0,0,{k:'stm_'+c.id,cls:
 /* ===== نهاية كشف الحساب ===== */
 function render(){if(!ME.id)return;document.body.classList.remove('login');
 const a=SI(),cs=SC(),tin=a.filter(i=>i.on!==false).reduce((x,i)=>x+i.amt,0),tob=cs.reduce((x,c)=>x+c.alloc,0);
-$('#nav').innerHTML=`<div class="brand"><span class="lg">💼</span>ميزانيتي</div><button class="nvt ls" onclick="tgNav()">إخفاء ▸</button>`+TABS.map(([k,ic,v])=>`<button class="i ${k==tab?'on':''}" onclick="go('${k}')"><span>${ic}</span><span class="lf">${v}</span><span class="ls">${SH[k]}</span>${k=='arch'&&needClose()?'<i class="dot"></i>':''}</button>`).join('')+`<div class="me"><b>${E(ME.name)}</b><div class="sub">${E(ME.email)}</div><div class="ver"><span class="lf">نسخة 8.7 · ترتيب</span><span class="ls">نسخة 8.7</span></div><button class="out" onclick="doOut()"><span class="lf">تسجيل الخروج</span><span class="ls">خروج</span></button></div>`;
+$('#nav').innerHTML=`<div class="brand"><span class="lg">💼</span>ميزانيتي</div><button class="nvt ls" onclick="tgNav()">إخفاء ▸</button>`+TABS.map(([k,ic,v])=>`<button class="i ${k==tab?'on':''}" onclick="go('${k}')"><span>${ic}</span><span class="lf">${v}</span><span class="ls">${SH[k]}</span>${k=='arch'&&needClose()?'<i class="dot"></i>':''}</button>`).join('')+`<div class="me"><b>${E(ME.name)}</b><div class="sub">${E(ME.email)}</div><div class="ver"><span class="lf">نسخة 8.8 · ملخص</span><span class="ls">نسخة 8.8</span></div><button class="out" onclick="doOut()"><span class="lf">تسجيل الخروج</span><span class="ls">خروج</span></button></div>`;
 let h=`<div class="bar"><div class="mon"><button onclick="askMv(-1)">›</button><span>📅 ${lab(cy)}</span><button onclick="askMv(1)">‹</button></div>${cy.getTime()!=ck(today()).getTime()?'<button class="btn g" style="padding:6px 12px" onclick="cy=ck(today());render()">الدورة الحالية</button>':''}<span class="sub">دورة ${rng(cy)} · آخر مزامنة ${sync?sync.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'}):'—'}</span></div>`;
 if(tab!='arch'&&tab!='log'&&tab!='bak')h+=cbanner();if(!S.cats.length&&!S.inc.length&&srv.cats&&srv.inc&&tab!='log'&&tab!='bak')h+=`<div class="card" style="margin-bottom:14px"><h3>لا توجد بيانات بعد</h3><p>حمّل الدخل والمخصصات المبدئية ثم عدّلها كما تشاء.</p><button class="btn" onclick="seed()">تحميل البيانات الأولية</button></div>`;
 const fre=SI().filter(i=>i.on!==false).reduce((a,i)=>{const r=srcCalc(i.id);return a+(r&&r.left>0?r.left:0)},0),top=`<div class="k3 k4"><div class="k kb"><div><small>إجمالي الرواتب</small><b>${R(tin)}</b></div><div class="em">👥</div></div><div class="k kr"><div><small>إجمالي الالتزامات</small><b>${R(tob)}</b></div><div class="em">👛</div></div><div class="k ${tin-tob<0?'kr':'kg'}"><div><small>المتبقي الإجمالي</small><b>${R(tin-tob)}</b></div><div class="em">📊</div></div><div class="k kg"><div><small>الرصيد الحر</small><b>${R(fre)}</b></div><div class="em">💎</div></div></div>`,g3=`<div class="g3">${salT(a)}${oblT(cs)}${donut(cs,tob)}</div>`;
@@ -685,12 +685,12 @@ const pkItems=k=>{const sel=$('#f_'+k),cur=sel.value,other=$('#f_'+(k=='src'?'sr
 const pkSet=k=>{const sel=$('#f_'+k),b=$('#pk_'+k);if(!sel||!b)return;const it=pkItems(k).find(x=>x.v==sel.value)||pkItems(k)[0];b.innerHTML='<span class="pkn">'+it.ic+' '+E(it.n)+'</span>'+(it.b?'<span class="pkc'+(it.bad||/^عجز/.test(it.b)?' neg':'')+'">'+E(it.b)+'</span>':'')+'<span class="pkv">▾</span>'};
 function openPick(k){const sel=$('#f_'+k),lb=k=='src2'?'مصدر مساعد (اختياري)':'مصدر الدخل';closePick();const w=document.createElement('div');w.id='pkw';w.onclick=e=>{if(e.target==w)closePick()};w.innerHTML='<div class="pks"><div class="pkh"><b>'+lb+'</b><button type="button" onclick="closePick()">✕</button></div>'+pkItems(k).map((x,i)=>'<button type="button" class="pko'+(x.v==sel.value?' on':'')+'" onclick="pickVal(\''+k+'\','+i+')"><span class="pkn">'+x.ic+' '+E(x.n)+'</span>'+(x.b?'<span class="pkc'+(x.bad||/^عجز/.test(x.b)?' neg':'')+'">'+E(x.b)+'</span>':'')+'<span class="pkt">'+(x.v==sel.value?'✓':'')+'</span></button>').join('')+'</div>';document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'))}
 function pickVal(k,i){const it=pkItems(k)[i],sel=$('#f_'+k);if(!sel||!it)return;if(![...sel.options].some(o=>o.value==it.v)){const o=document.createElement('option');o.value=it.v;sel.appendChild(o)}sel.value=it.v;if(k=='src'&&it.v&&$('#f_src2')&&$('#f_src2').value==it.v){$('#f_src2').value='';pkSet('src2')}pkSet(k);closePick()}
-function closePick(){const w=$('#pkw');if(w)w.remove()}
+function closePick(){const w=$('#pkw');if(w)w.remove();_shN=''}
 /* ===== التقسيم على عدد أشخاص + حفظ كصورة ===== */
 const N2=n=>(Math.round(Number(n||0)*100)/100).toLocaleString('en-US');
 function openSplPick(){const cur=+$('#f_split').value||0;closePick();const w=document.createElement('div');w.id='pkw';w.onclick=e=>{if(e.target==w)closePick()};w.innerHTML='<div class="pks"><div class="pkh"><b>التقسيم عند حفظ الصورة</b><button type="button" onclick="closePick()">✕</button></div>'+[0,2,3,4,5,6,7,8,9,10].map(n=>'<button type="button" class="pko'+(n==cur?' on':'')+'" onclick="pickSpl('+n+')"><span class="pkn">'+(n?'👥 على '+(n==2?'شخصين':n+' أشخاص'):'🚫 بدون تقسيم')+'</span><span class="pkt">'+(n==cur?'✓':'')+'</span></button>').join('')+'</div>';document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'))}
 function pickSpl(n){$('#f_split').value=n;const b=$('#pk_split');if(b)b.querySelector('.pkn').textContent=n?'👥 على '+(n==2?'شخصين':n+' أشخاص'):'🚫 بدون تقسيم';closePick()}
-let _shB=null;
+let _shB=null;var _shN='';
 function obImg(id){const c=cget(id);if(!c)return;
 const l0=S.pay.filter(p=>p.cat==id&&p.st=='ok'&&ck(p.date).getTime()==cy.getTime()).sort((a,b)=>(a.date+ptm(a)).localeCompare(b.date+ptm(b))||((a.ts||0)-(b.ts||0)));
 const tot=l0.reduce((a,x)=>a+x.amt,0),rm=c.alloc-tot,sp=+c.split>=2?+c.split:0,W=720,P=28,IW=W-2*P,R=W-P,ff=getComputedStyle(document.body).fontFamily||'system-ui,Arial';
@@ -714,7 +714,57 @@ y+=8;
 const H=Math.ceil(y+12),o=document.createElement('canvas');o.width=W*2;o.height=H*2;const q=o.getContext('2d');q.fillStyle='#eef1f6';q.fillRect(0,0,W*2,H*2);q.scale(2,2);q.fillStyle='#fff';q.beginPath();if(q.roundRect)q.roundRect(12,12,W-24,H-24,22);else q.rect(12,12,W-24,H-24);q.fill();q.setTransform(1,0,0,1,0,0);q.drawImage(cv,0,0,W*2,H*2,0,0,W*2,H*2);
 o.toBlob(b=>{_shB=b;showImg(o.toDataURL('image/png'))},'image/png')}
 function showImg(u,t){closePick();const w=document.createElement('div');w.id='pkw';w.onclick=e=>{if(e.target==w)closePick()};w.innerHTML='<div class="pks"><div class="pkh"><b>📷 '+E(t||'صورة الالتزام')+'</b><button type="button" onclick="closePick()">✕</button></div><div style="max-height:56vh;overflow:auto;border-radius:12px;border:1px solid var(--bd)"><img src="'+u+'" style="width:100%;display:block" alt=""></div><div class="cfa"><button type="button" class="y" onclick="obShare()">📤 مشاركة / حفظ</button><button type="button" class="n" onclick="closePick()">إغلاق</button></div><p class="sub" style="text-align:center;margin:8px 0 0">أو اضغط مطولًا على الصورة لحفظها</p></div>';document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'))}
-async function obShare(){try{const f=new File([_shB],'obligation.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else toast('اضغط مطولًا على الصورة لحفظها',0)}catch(e){}}
+function sumCard(){return '<div class="card" style="margin-top:14px"><div class="ch"><h3>📊 ملخص الدورة</h3></div><p class="sub">صورة للمشاركة: كم صرف كل شخص، وما للدفتر وما لسداد الالتزامات، وأكثر ما استهلكه.</p><button class="btn" onclick="openSumPick()">📊 إصدار ملخص بصورة</button></div>'}
+function openSumPick(){closePick();const ps=rep(cy).filter(q=>q.total>0),w=document.createElement('div');w.id='pkw';w.onclick=e=>{if(e.target==w)closePick()};
+const op=(k,t,s)=>'<button type="button" class="pko" onclick="sumImg(\''+k+'\')"><span class="pkn">'+t+'</span><span class="pkt">'+s+'</span></button>';
+w.innerHTML='<div class="pks"><div class="pkh"><b>ملخص '+E(lab(cy))+'</b><button type="button" onclick="closePick()">✕</button></div>'+op('*','🌐 الملخص العام',N(ps.reduce((a,q)=>a+q.total,0)))+['عبدالعزيز','ريان'].map(n=>{const q=ps.find(z=>z.who==n);return op(n,'👤 '+n,q?N(q.total):'0')}).join('')+'</div>';
+document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'))}
+function sumImg(k){closePick();
+const all=rep(cy),ps=all.filter(q=>q.total>0),gen=k=='*';let q;
+if(gen){const cm={};ps.forEach(p=>p.cats.forEach(c=>{cm[c.name]=(cm[c.name]||0)+c.amt}));q={who:'الملخص العام',led:ps.reduce((a,p)=>a+p.led,0),pay:ps.reduce((a,p)=>a+p.pay,0),cats:Object.entries(cm).map(([name,amt])=>({name,amt})).sort((a,b)=>b.amt-a.amt)};q.total=q.led+q.pay}else q=all.find(p=>p.who==k);
+if(!q||!q.total)return toast('لا توجد مصروفات في هذه الدورة',0);
+const ex=S.exp.filter(e=>e.st=='ok'&&!e.fuel&&ck(e.date).getTime()==cy.getTime()),mine=gen?ex.map(e=>({e,a:e.amt})):ex.filter(e=>elw(e).includes(k)).map(e=>({e,a:esh(e)})),dm={};
+mine.forEach(z=>{dm[z.e.date]=(dm[z.e.date]||0)+z.a});
+const bd=Object.entries(dm).sort((a,b)=>b[1]-a[1])[0],bg=mine.slice().sort((a,b)=>b.a-a.a)[0],hl=[];
+if(bd){const dd=new Date(bd[0]+'T12:00:00');hl.push('📅 أكثر يوم صرفًا: '+dd.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{weekday:'long',day:'numeric',month:'short'})+' · '+N2(bd[1])+' ريال')}
+if(bg)hl.push('💸 أكبر مصروف: '+cname(bg.e.cat)+' · '+N2(bg.a)+' ريال');
+const W=720,P=28,IW=W-2*P,R=W-P,ff=getComputedStyle(document.body).fontFamily||'system-ui,Arial';
+const cv=document.createElement('canvas');cv.width=W*2;cv.height=1600*2;const x=cv.getContext('2d');x.scale(2,2);x.direction='rtl';
+const F=(s,b)=>(b?'bold ':'')+s+'px '+ff,T=(t,xx,yy,f,col,al)=>{x.font=f;x.fillStyle=col;x.textAlign=al||'right';x.fillText(String(t),xx,yy)},rr=(a,b,w,h,r)=>{x.beginPath();if(x.roundRect)x.roundRect(a,b,w,h,r);else x.rect(a,b,w,h)},
+fit=(t,w,f)=>{x.font=f;t=String(t);if(x.measureText(t).width<=w)return t;while(t.length>1&&x.measureText(t+'…').width>w)t=t.slice(0,-1);return t+'…'};
+let y;
+if(!gen){
+x.fillStyle='#eaf2ff';x.fillRect(0,0,W,158);
+T('ميزانيتي',R,52,F(20,1),'#2f5fd0');T(rng(cy),P,52,F(16),'#4a5878','left');
+T('ملخص '+q.who,R,106,F(38,1),'#1d2b4a');T(lab(cy),R,138,F(17),'#4a5878');
+y=190;const tw=(IW-14)/2;
+[['📒 الدفتر',q.led,R],['🧾 سداد الالتزامات',q.pay,R-tw-14]].forEach(b=>{x.fillStyle='#f4f6fb';rr(b[2]-tw,y,tw,100,16);x.fill();T(b[0],b[2]-tw/2,y+34,F(17),'#6b7794','center');T(N2(b[1]),b[2]-tw/2,y+78,F(30,1),'#1d2b4a','center')});
+y+=134;
+T('إجمالي صرفه',R,y+22,F(20,1),'#1d2b4a');T(N2(q.total)+' ريال',P,y+26,F(34,1),'#1f9d63','left');y+=60;
+x.fillStyle='#e6e9f0';x.fillRect(P,y,IW,1);y+=34;
+T('أكثر ما استهلكه في الدفتر',R,y,F(17),'#6b7794');y+=20;
+const cs=q.cats.slice(0,6);
+if(!cs.length){T('لا توجد مصروفات دفتر في هذه الدورة',W/2,y+40,F(16),'#6b7794','center');y+=70}
+else{cs.forEach((c,i)=>{const r0=i%2?R-tw-14:R,yy=y+Math.floor(i/2)*74;x.strokeStyle='#e6e9f0';x.lineWidth=2;rr(r0-tw,yy,tw,62,16);x.stroke();T(eci(c.name),r0-14,yy+40,F(26),'#1d2b4a');T(fit(c.name,160,F(19,1)),r0-56,yy+39,F(19,1),'#1d2b4a');T(N2(c.amt),r0-tw+16,yy+39,F(19),'#6b7794','left')});y+=Math.ceil(cs.length/2)*74+10}
+}else{
+T('ميزانيتي',W/2,58,F(18,1),'#6b7794','center');T('الملخص العام',W/2,106,F(38,1),'#1d2b4a','center');T(rng(cy)+' · '+lab(cy),W/2,138,F(17),'#6b7794','center');
+const dcx=W/2,dcy=290,dr=92,PC=['#1f9d63','#d98a1a','#6b7794','#7a5fd0'];
+x.lineWidth=36;x.strokeStyle='#eef1f6';x.beginPath();x.arc(dcx,dcy,dr,0,Math.PI*2);x.stroke();
+let a0=-Math.PI/2;ps.forEach((p,i)=>{const a1=a0+p.total/q.total*Math.PI*2;x.strokeStyle=PC[i%PC.length];x.beginPath();x.arc(dcx,dcy,dr,a0,a1);x.stroke();a0=a1});
+T('الإجمالي',dcx,dcy-6,F(16),'#6b7794','center');T(N2(q.total),dcx,dcy+30,F(32,1),'#1d2b4a','center');
+y=dcy+dr+66;
+const n=ps.length,sw=IW/n;ps.forEach((p,i)=>{const sx=R-(i+.5)*sw,t=p.who+' · '+N2(p.total);x.font=F(19,1);const tw2=x.measureText(t).width;T(t,sx,y,F(19,1),'#1d2b4a','center');x.fillStyle=PC[i%PC.length];x.beginPath();x.arc(sx+tw2/2+14,y-7,6,0,Math.PI*2);x.fill();T('📒 '+N2(p.led)+'   🧾 '+N2(p.pay),sx,y+28,F(15),'#6b7794','center')});
+y+=60;x.fillStyle='#e6e9f0';x.fillRect(P,y,IW,1);y+=34;
+T('أكثر ما استهلكوه في الدفتر',R,y,F(17),'#6b7794');y+=14;
+const cs=q.cats.slice(0,5);
+cs.forEach((c,i)=>{const yy=y+i*56;T(String(i+1),R,yy+36,F(18),'#9aa5bd');T(eci(c.name),R-36,yy+37,F(24),'#1d2b4a');T(fit(c.name,330,F(19,1)),R-76,yy+36,F(19,1),'#1d2b4a');T(N2(c.amt),P,yy+36,F(19,1),'#1d2b4a','left');x.fillStyle='#eef1f6';x.fillRect(P,yy+55,IW,1)});
+if(cs.length)y+=cs.length*56+14;else{T('لا توجد مصروفات دفتر في هذه الدورة',W/2,y+30,F(16),'#6b7794','center');y+=60}
+}
+if(hl.length){const h=24+hl.length*34;x.fillStyle='#f4f6fb';rr(P,y,IW,h,16);x.fill();hl.forEach((t,i)=>T(fit(t,IW-40,F(17)),R-20,y+34+i*34,F(17),'#4a5878'));y+=h+14}
+y+=20;
+const H=Math.ceil(y+12),o=document.createElement('canvas');o.width=W*2;o.height=H*2;const g=o.getContext('2d');g.fillStyle='#eef1f6';g.fillRect(0,0,W*2,H*2);g.save();g.scale(2,2);g.beginPath();if(g.roundRect)g.roundRect(12,12,W-24,H-24,22);else g.rect(12,12,W-24,H-24);g.clip();g.fillStyle='#fff';g.fillRect(0,0,W,H);g.setTransform(1,0,0,1,0,0);g.drawImage(cv,0,0,W*2,H*2,0,0,W*2,H*2);g.restore();
+o.toBlob(b=>{_shB=b;showImg(o.toDataURL('image/png'),'ملخص '+(gen?'عام':k));_shN='summary.png'},'image/png')}
+async function obShare(){try{const f=new File([_shB],_shN||'obligation.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});else toast('اضغط مطولًا على الصورة لحفظها',0)}catch(e){}}
 
 /* ===== تأكيد الانتقال بين الدورات (سابقة/قادمة/حالية) ===== */
 function askMv(n){const t=new Date(cy.getFullYear(),cy.getMonth()+n,28);const c0=ck(today()).getTime(),k=t.getTime()<c0?0:t.getTime()>c0?1:2,ic=['🕰️','🔜','📅'][k],tt=['الانتقال إلى دورة سابقة','الانتقال إلى دورة قادمة','الانتقال إلى الدورة الحالية'][k];closePick();const w=document.createElement('div');w.id='pkw';w.onclick=e=>{if(e.target==w)closePick()};w.innerHTML='<div class="pks"><div class="cfm"><div class="ci">'+ic+'</div><h4>'+tt+'</h4><p>هل أنت متأكد أنك تريد الذهاب إلى</p><div class="cm">'+E(lab(t))+'</div><span class="cr">دورة '+E(rng(t))+'</span></div><div class="cfa"><button type="button" class="y" onclick="goPast('+t.getTime()+')">نعم، انتقل</button><button type="button" class="n" onclick="closePick()">إلغاء</button></div></div>';document.body.appendChild(w);requestAnimationFrame(()=>w.classList.add('on'))}
